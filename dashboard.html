@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - College Event Hub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Main Container - This is lifted to the top layer -->
+    <div class="container">
+        <header class="header">
+            <h1 id="welcomeMessage">Welcome!</h1>
+            <div class="header-actions">
+                <button id="postEventBtn" class="primary-button">+ Post Event</button>
+                <button id="logoutButton">Logout</button>
+            </div>
+        </header>
+
+        <!-- Filter Navigation -->
+        <nav class="filter-nav">
+            <button class="filter-btn active" data-category="All">All</button>
+            <button class="filter-btn" data-category="Tech">Tech</button>
+            <button class="filter-btn" data-category="Cultural">Cultural</button>
+            <button class="filter-btn" data-category="Hackathon">Hackathon</button>
+            <button class="filter-btn" data-category="Seminar">Seminar</button>
+            <button class="filter-btn" data-category="Conference">Conference</button>
+        </nav>
+
+        <!-- Event Grid -->
+        <main id="eventList" class="event-grid">
+            <!-- Events will be dynamically inserted here -->
+        </main>
+    </div>
+
+    <!-- Modal for Posting/Updating Events (Hidden by default) -->
+    <div id="eventModal" class="modal-overlay">
+        <div class="modal-content glass-effect">
+            <button class="close-modal-btn">&times;</button>
+            <h2>Publish or Update an Event</h2>
+            <form id="eventForm">
+                <input type="hidden" id="eventId">
+                <input type="text" id="eventName" placeholder="Event Name" required>
+                <input type="url" id="eventLink" placeholder="Event Link (e.g., https://...)" required>
+                <label for="eventDeadline">Deadline:</label>
+                <input type="datetime-local" id="eventDeadline" required>
+                <select id="eventCategory" required>
+                    <option value="" disabled selected>Select a Category</option>
+                    <option value="Tech">Tech</option>
+                    <option value="Cultural">Cultural</option>
+                    <option value="Hackathon">Hackathon</option>
+                    <option value="Seminar">Seminar</option>
+                    <option value="Conference">Conference</option>
+                </select>
+                <button type="submit" id="submitButton" class="primary-button">Publish Event</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- The new background animation script -->
+    <script src="background.js"></script>
+    
+    <!-- Your main application logic script -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>

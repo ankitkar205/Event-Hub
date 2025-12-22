@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Flux Tic-Tac-Toe</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        :root {
+            --bg-color: #050505;
+            --grid-color: #1a1a1a;
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
+            font-family: 'Orbitron', sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px; /* Essential for 3D effect */
+        }
+
+        /* Background Grid Animation */
+        .bg-grid {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                linear-gradient(transparent 95%, rgba(0, 243, 255, 0.1) 50%),
+                linear-gradient(90deg, transparent 95%, rgba(255, 0, 255, 0.1) 50%);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px); }
+        }
+
+        /* Game Container with 3D Tilt */
+        #game-container {
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            background: var(--glass);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        /* Player Styles */
+        .x-mark {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .o-mark {
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* UI Elements */
+        .info-panel {
+            margin-bottom: 30px;
+            text-align: center;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transform: translateZ(50px); /* Floating effect */
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: #888;
+        }
+
+        #reset-btn {
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+            border-radius: 50px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.2);
+            transform: translateZ(20px);
+        }
+
+        #reset-btn:hover {
+            background: white;
+            color: black;
+            box-shadow: 0 0 30px white;
+        }
+
+        /* Canvas for Particles */
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Win Line */
+        .win-line {
+            position: absolute;
+            background-color: white;
+            height: 5px;
+            width: 0;
+            border-radius: 5px;
+            box-shadow: 0 0 20px white, 0 0 40px var(--neon-blue);
+            transform-origin: left center;
+            z-index: 5;
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+    <canvas id="particle-canvas"></canvas>
+
+    <div id="game-container">
+        <div class="info-panel">
+            <h1>NEON FLUX</h1>
+            <div class="status" id="status">PLAYER X TURN</div>
+        </div>
+
+        <div class="board" id="board">
+            <div class="win-line" id="win-line"></div>
+            <!-- Cells generated by JS -->
+        </div>
+
+        <div style="text-align: center;">
+            <button id="reset-btn">Reboot System</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Configuration ---
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+        const resetBtn = document.getElementById('reset-btn');
+        const gameContainer = document.getElementById('game-container');
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        const winLine = document.getElementById('win-line');
+
+        let gameState = ["", "", "", "", "", "", "", "", ""];
+        let currentPlayer = "X";
+        let gameActive = true;
+
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6]             // Diagonals
+        ];
+
+        // --- Initialization ---
+        function initBoard() {
+            boardElement.innerHTML = '<div class="win-line" id="win-line"></div>';
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.setAttribute('data-index', i);
+                cell.addEventListener('click', handleCellClick);
+                boardElement.appendChild(cell);
+            }
+        }
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // --- Audio Synthesis (Sci-Fi Sounds) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'move') {
+                // High pitch blip
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(currentPlayer === 'X' ? 600 : 400, now);
+                oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                oscillator.start(now);
+                oscillator.stop(now + 0.15);
+            } else if (type === 'win') {
+                // Power up sound
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(200, now);
+                oscillator.frequency.linearRampToValueAtTime(800, now + 0.5);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 1.5);
+                oscillator.start(now);
+                oscillator.stop(now + 1.5);
+            } else if (type === 'draw') {
+                // Low buzz
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(150, now);
+                oscillator.frequency.linearRampToValueAtTime(100, now + 0.3);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                oscillator.start(now);
+                oscillator.stop(now + 0.3);
+            }
+        }
+
+        // --- 3D Parallax Effect ---
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.clientX) / 25;
+            const y = (window.innerHeight / 2 - e.clientY) / 25;
+            gameContainer.style.transform = `rotateX(${y}deg) rotateY(${-x}deg)`;
+        });
+
+        // --- Particle System ---
+        const particles = [];
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 6 - 3;
+                this.speedY = Math.random() * 6 - 3;
+                this.life = 1; // Opacity
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= 0.02;
+                if (this.size > 0.2) this.size -= 0.1;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function createExplosion(x, y, color, amount = 20) {
+            for (let i = 0; i < amount; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // --- Game Logic ---
+        function handleCellClick(e) {
+            const clickedCell = e.target;
+            const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+
+            if (gameState[clickedCellIndex] !== "" || !gameActive) return;
+
+            // Update Game State
+            gameState[clickedCellIndex] = currentPlayer;
+            
+            // Visuals
+            clickedCell.innerHTML = currentPlayer;
+            clickedCell.className = `cell ${currentPlayer === 'X' ? 'x-mark' : 'o-mark'}`;
+            
+            // Particles logic
+            const rect = clickedCell.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const color = currentPlayer === 'X' ? '#00f3ff' : '#ff00ff';
+            createExplosion(centerX, centerY, color);
+            
+            playSound('move');
+
+            checkResult();
+        }
+
+        function checkResult() {
+            let roundWon = false;
+            let winCombo = [];
+
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (gameState[a] === '' || gameState[b] === '' || gameState[c] === '') continue;
+                if (gameState[a] === gameState[b] && gameState[b] === gameState[c]) {
+                    roundWon = true;
+                    winCombo = [a, b, c];
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                endGame(true, winCombo);
+                return;
+            }
+
+            if (!gameState.includes("")) {
+                endGame(false);
+                return;
+            }
+
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            statusElement.textContent = `PLAYER ${currentPlayer} TURN`;
+            statusElement.style.color = currentPlayer === "X" ? "#00f3ff" : "#ff00ff";
+        }
+
+        function endGame(isWin, combo) {
+            gameActive = false;
+            if (isWin) {
+                statusElement.textContent = `PLAYER ${currentPlayer} WINS!`;
+                statusElement.style.color = "#fff";
+                statusElement.style.textShadow = "0 0 20px #fff";
+                playSound('win');
+                drawWinLine(combo);
+                
+                // Massive Explosion
+                const center = boardElement.getBoundingClientRect();
+                createExplosion(center.left + center.width/2, center.top + center.height/2, currentPlayer === 'X' ? '#00f3ff' : '#ff00ff', 100);
+            } else {
+                statusElement.textContent = "SYSTEM DEADLOCK (DRAW)";
+                statusElement.style.color = "#888";
+                playSound('draw');
+            }
+        }
+
+        function drawWinLine(combo) {
+            const line = document.getElementById('win-line');
+            const cells = document.querySelectorAll('.cell');
+            
+            const rect1 = cells[combo[0]].getBoundingClientRect();
+            const rect2 = cells[combo[2]].getBoundingClientRect();
+            const boardRect = boardElement.getBoundingClientRect();
+
+            const x1 = rect1.left - boardRect.left + rect1.width / 2;
+            const y1 = rect1.top - boardRect.top + rect1.height / 2;
+            const x2 = rect2.left - boardRect.left + rect2.width / 2;
+            const y2 = rect2.top - boardRect.top + rect2.height / 2;
+
+            const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+            const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
+
+            line.style.width = `${length}px`;
+            line.style.transform = `translate(${x1}px, ${y1}px) rotate(${angle}deg)`;
+            line.style.backgroundColor = currentPlayer === 'X' ? '#00f3ff' : '#ff00ff';
+            line.style.boxShadow = `0 0 20px ${currentPlayer === 'X' ? '#00f3ff' : '#ff00ff'}`;
+        }
+
+        function resetGame() {
+            gameState = ["", "", "", "", "", "", "", "", ""];
+            gameActive = true;
+            currentPlayer = "X";
+            statusElement.textContent = "PLAYER X TURN";
+            statusElement.style.color = "#888";
+            statusElement.style.textShadow = "none";
+            
+            const line = document.getElementById('win-line');
+            line.style.width = '0';
+
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.textContent = "";
+                cell.className = 'cell';
+            });
+            playSound('move');
+        }
+
+        resetBtn.addEventListener('click', resetGame);
+
+        initBoard();
+
+    </script>
+</body>
+</html>

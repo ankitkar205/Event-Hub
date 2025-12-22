@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Event Hub - Welcome</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+    <!-- The SVG has been removed from here -->
+    <div class="animated-border-container">
+        <div class="form-container">
+            <!-- Login Form View -->
+            <div id="loginBox">
+                <h1>Welcome Back</h1>
+                <p>Login to the Event Hub</p>
+                <form id="loginForm">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <button type="submit" class="primary-button">Login</button>
+                    <p id="loginMessage" class="message"></p>
+                </form>
+                <p class="toggle-link">No account? <a href="#" id="showSignup">Create one</a></p>
+            </div>
+
+            <!-- Sign-up Form View (Hidden by default) -->
+            <div id="signupBox" class="hidden">
+                <h1>Create Account</h1>
+                <p>Join the hub to share and discover events</p>
+                <form id="signupForm">
+                    <input type="text" id="signupUsername" placeholder="Username" required>
+                    <input type="email" id="signupEmail" placeholder="Email" required>
+                    <input type="password" id="signupPassword" placeholder="Password (min. 6 characters)" required>
+                    <button type="submit" class="primary-button">Sign Up</button>
+                    <p id="signupMessage" class="message"></p>
+                </form>
+                <p class="toggle-link">Have an account? <a href="#" id="showLogin">Login here</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module" src="script.js"></script>
+</body>
+</html>
