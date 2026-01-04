@@ -37,7 +37,6 @@ const db = getFirestore(app);
 // Central Authentication Router
 // =================================================================
 onAuthStateChanged(auth, async (user) => {
-    // ... (This function remains exactly the same as before)
     const path = window.location.pathname.split("/").pop();
     if (user) {
         const userDocRef = doc(db, 'users', user.uid);
@@ -53,7 +52,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // =================================================================
-// Login Page Logic (`index.html`) - FINAL SEPARATED VERSION
+// Login Page Logic (`index.html`)
 // =================================================================
 function handleLoginPage() {
     // --- Element Selectors for Forms and Toggles ---
@@ -61,7 +60,6 @@ function handleLoginPage() {
     const signupBox = document.getElementById('signupBox');
     const showSignup = document.getElementById('showSignup');
     const showLogin = document.getElementById('showLogin');
-
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
     const loginMessage = document.getElementById('loginMessage');
@@ -89,7 +87,6 @@ function handleLoginPage() {
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            // onAuthStateChanged will handle the redirect
         } catch (error) {
             console.error("Login Error:", error.code);
             loginMessage.textContent = "Invalid credentials. Please try again.";
@@ -111,14 +108,12 @@ function handleLoginPage() {
 
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            // Create the user profile document in Firestore
             const userDocRef = doc(db, 'users', userCredential.user.uid);
             await setDoc(userDocRef, {
                 username: username,
                 email: email,
                 role: 'USER'
             });
-            // onAuthStateChanged will handle the redirect
         } catch (error) {
             console.error("Signup Error:", error.code);
             if (error.code === 'auth/email-already-in-use') {
@@ -131,22 +126,20 @@ function handleLoginPage() {
 }
 
 // =================================================================
-// Dashboard Page Logic - HEAVILY UPDATED
+// Dashboard Page Logic
 // =================================================================
 function handleDashboardPage(user, userData) {
     // --- State Variables ---
     let allEvents = [];
     let currentFilter = 'All';
-    let searchTerm = ''; // <-- 1. ADD NEW STATE VARIABLE
+    let searchTerm = '';
 
     // --- Element Selectors ---
     const welcomeMessage = document.getElementById('welcomeMessage');
     const logoutButton = document.getElementById('logoutButton');
     const eventList = document.getElementById('eventList');
     const filterNav = document.querySelector('.filter-nav');
-    const searchInput = document.getElementById('searchInput'); // <-- 1. ADD NEW SELECTOR
-
-    // --- Modal Elements ---
+    const searchInput = document.getElementById('searchInput');
     const eventModal = document.getElementById('eventModal');
     const postEventBtn = document.getElementById('postEventBtn');
     const closeModalBtn = document.querySelector('.close-modal-btn');
@@ -159,9 +152,7 @@ function handleDashboardPage(user, userData) {
     }
 
     // --- Modal Logic ---
-    const showModal = () => {
-        eventModal.classList.add('show');
-    };
+    const showModal = () => eventModal.classList.add('show');
     const hideModal = () => {
         eventModal.classList.remove('show');
         eventForm.reset();
@@ -172,21 +163,23 @@ function handleDashboardPage(user, userData) {
     postEventBtn.addEventListener('click', showModal);
     closeModalBtn.addEventListener('click', hideModal);
     eventModal.addEventListener('click', (e) => {
-        if (e.target === eventModal) { // Close if clicking on the overlay
-            hideModal();
-        }
+        if (e.target === eventModal) hideModal();
     });
 
     // --- Event Rendering Logic ---
-    const renderEvents = () => { // <-- 3. REPLACE THIS ENTIRE FUNCTION
+    const renderEvents = () => {
         eventList.innerHTML = '';
+        const now = new Date();
 
-        // First, filter by the selected category
+        // 1. Filter out events that have passed their deadline from the master list
+        const upcomingEvents = allEvents.filter(event => new Date(event.deadline) > now);
+
+        // 2. Filter the upcoming events by the selected category
         let eventsToRender = currentFilter === 'All'
-            ? allEvents
-            : allEvents.filter(event => event.category === currentFilter);
+            ? upcomingEvents
+            : upcomingEvents.filter(event => event.category === currentFilter);
 
-        // Then, filter the result by the current search term
+        // 3. Filter the result by the current search term
         if (searchTerm) {
             eventsToRender = eventsToRender.filter(event =>
                 event.name.toLowerCase().includes(searchTerm)
@@ -232,6 +225,10 @@ function handleDashboardPage(user, userData) {
         allEvents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderEvents(); // Re-render whenever data changes
     });
+    
+    // --- Auto-refresh Timer ---
+    // Re-render every minute to hide events whose deadlines have just passed
+    setInterval(renderEvents, 60000);
 
     // --- Filtering Logic ---
     filterNav.addEventListener('click', (e) => {
@@ -243,7 +240,7 @@ function handleDashboardPage(user, userData) {
         }
     });
 
-    // --- Search Logic --- // <-- 2. ADD THIS NEW EVENT LISTENER
+    // --- Search Logic ---
     searchInput.addEventListener('input', (e) => {
         searchTerm = e.target.value.toLowerCase().trim();
         renderEvents();
