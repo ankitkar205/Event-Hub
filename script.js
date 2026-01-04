@@ -137,12 +137,14 @@ function handleDashboardPage(user, userData) {
     // --- State Variables ---
     let allEvents = [];
     let currentFilter = 'All';
+    let searchTerm = ''; // <-- 1. ADD NEW STATE VARIABLE
 
     // --- Element Selectors ---
     const welcomeMessage = document.getElementById('welcomeMessage');
     const logoutButton = document.getElementById('logoutButton');
     const eventList = document.getElementById('eventList');
     const filterNav = document.querySelector('.filter-nav');
+    const searchInput = document.getElementById('searchInput'); // <-- 1. ADD NEW SELECTOR
 
     // --- Modal Elements ---
     const eventModal = document.getElementById('eventModal');
@@ -176,18 +178,27 @@ function handleDashboardPage(user, userData) {
     });
 
     // --- Event Rendering Logic ---
-    const renderEvents = () => {
+    const renderEvents = () => { // <-- 3. REPLACE THIS ENTIRE FUNCTION
         eventList.innerHTML = '';
-        const filteredEvents = currentFilter === 'All' 
-            ? allEvents 
+
+        // First, filter by the selected category
+        let eventsToRender = currentFilter === 'All'
+            ? allEvents
             : allEvents.filter(event => event.category === currentFilter);
 
-        if (filteredEvents.length === 0) {
-            eventList.innerHTML = '<p>No events found for this category.</p>';
+        // Then, filter the result by the current search term
+        if (searchTerm) {
+            eventsToRender = eventsToRender.filter(event =>
+                event.name.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        if (eventsToRender.length === 0) {
+            eventList.innerHTML = '<p>No events match your criteria.</p>';
             return;
         }
 
-        filteredEvents.forEach(event => {
+        eventsToRender.forEach(event => {
             const eventCard = document.createElement('div');
             eventCard.className = 'event-card glass-effect';
             eventCard.dataset.id = event.id;
@@ -230,6 +241,12 @@ function handleDashboardPage(user, userData) {
             currentFilter = e.target.dataset.category;
             renderEvents();
         }
+    });
+
+    // --- Search Logic --- // <-- 2. ADD THIS NEW EVENT LISTENER
+    searchInput.addEventListener('input', (e) => {
+        searchTerm = e.target.value.toLowerCase().trim();
+        renderEvents();
     });
 
     // --- Form & Actions Logic ---
