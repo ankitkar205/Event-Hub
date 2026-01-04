@@ -1,4 +1,29 @@
 /* --- GLOBAL & TYPOGRAPHY --- */
+
+/* Define the font for the website name and welcome message (h1) */
+@font-face {
+    font-family: 'BloxBrk';
+    src: url('fonts/BloxBrk-M7Ke.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Define the font for normal headings (h2, h3) */
+@font-face {
+    font-family: 'Bloxat';
+    src: url('fonts/Bloxat-PDoE.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Define the font for all usual body text */
+@font-face {
+    font-family: 'MinecraftRegular';
+    src: url('fonts/MinecraftRegular-Bmg3.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 :root {
     --primary-blue: #00c6ff;
     --secondary-blue: #0072ff;
@@ -10,14 +35,28 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    /* APPLY THE FONT FOR ALL USUAL TEXT (default) */
+    font-family: 'MinecraftRegular', sans-serif;
     color: var(--text-color);
     margin: 0;
     background-color: var(--dark-bg);
     background-attachment: fixed;
+    letter-spacing: 1px; /* Add slight spacing for readability */
 }
 
-h1, h2 { font-weight: 600; }
+h1 {
+    /* APPLY THE FONT FOR THE WEBSITE NAME AND WELCOME MESSAGE */
+    font-family: 'BloxBrk', sans-serif;
+    font-weight: normal;
+    letter-spacing: 2px;
+}
+
+h2, .event-card h3 {
+    /* APPLY THE FONT FOR NORMAL HEADINGS */
+    font-family: 'Bloxat', sans-serif;
+    font-weight: normal;
+    letter-spacing: 2px;
+}
 
 /* --- ANIMATIONS & TRANSITIONS --- */
 @keyframes card-enter { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -30,7 +69,7 @@ canvas {
     width: 100%;
     height: 100%;
     z-index: -1;
-    opacity: 1; /* FIXED: Make the canvas fully visible for punchy colors */
+    opacity: 1;
 }
 
 /* --- MAIN LAYOUT & HELPERS --- */
@@ -52,8 +91,8 @@ body.auth-page { display: flex; justify-content: center; align-items: center; mi
 
 /* --- DASHBOARD COMPONENTS --- */
 .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; margin-bottom: 30px; border-bottom: 1px solid var(--glass-border); }
-.header h1 { margin: 0; }
-.header-actions { display: flex; gap: 15px; }
+.header h1 { margin: 0; font-size: 1.8rem; } /* Adjusted font size for the new font */
+.header-actions { display: flex; gap: 15px; align-items: center; } /* Added align-items */
 .filter-nav { margin-bottom: 30px; display: flex; flex-wrap: wrap; gap: 10px; }
 .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
 .event-card { padding: 25px; display: flex; flex-direction: column; gap: 15px; transition: transform 0.3s ease, box-shadow 0.3s ease; animation: card-enter 0.5s ease-out forwards; opacity: 0; }
@@ -66,14 +105,65 @@ body.auth-page { display: flex; justify-content: center; align-items: center; mi
 .card-footer { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
 .category { background: rgba(0, 114, 255, 0.2); color: var(--primary-blue); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
 
+/* --- SEARCH BAR --- */
+.search-container {
+    margin-bottom: 30px;
+}
+
+#searchInput {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-family: inherit; /* This is important! */
+    box-sizing: border-box; /* Prevents padding from breaking the layout */
+}
+
+#searchInput:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+}
+
+#searchInput::placeholder {
+    color: #8b949e;
+}
+
+
 /* --- BUTTONS & FORMS (SHARED) --- */
-button { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s ease; color: var(--text-color); background: rgba(255, 255, 255, 0.1); border: 1px solid var(--glass-border); }
+button {
+    font-family: inherit; /* <<< THIS IS THE FIX FOR BUTTONS */
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    color: var(--text-color);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+}
 button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 .primary-button { background: linear-gradient(90deg, var(--primary-blue), var(--secondary-blue)); border: none; }
 .primary-button:hover { box-shadow: 0 0 15px rgba(0, 198, 255, 0.6); transform: translateY(-2px); }
 .filter-btn.active { background: var(--primary-blue); color: white; box-shadow: 0 0 15px rgba(0, 198, 255, 0.5); border: none; }
+
 form { display: grid; grid-template-columns: 1fr; gap: 20px; }
-form input, form select { background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); border-radius: 8px; padding: 12px 15px; font-size: 1rem; color: var(--text-color); transition: all 0.2s ease; }
+form input, form select {
+    font-family: inherit; /* <<< THIS IS THE FIX FOR FORM INPUTS */
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 1rem;
+    color: var(--text-color);
+    transition: all 0.2s ease;
+}
 form input::placeholder { color: #8b949e; }
 form input:focus, form select:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
 
@@ -84,3 +174,43 @@ form input:focus, form select:focus { outline: none; border-color: var(--primary
 .modal-overlay.show .modal-content { transform: scale(1); }
 .close-modal-btn { position: absolute; top: 15px; right: 20px; background: transparent; border: none; font-size: 2rem; cursor: pointer; color: #8b949e; }
 .close-modal-btn:hover { color: #fff; transform: translateY(0); box-shadow: none; }
+
+/* --- FIX FOR DATETIME-LOCAL ICON COLOR --- */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* This turns the default dark icon to white */
+    cursor: pointer;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1; /* Make it slightly brighter on hover */
+}
+
+/* ===================================================================== */
+/* --- RESPONSIVE STYLES FOR MOBILE --- */
+/* ===================================================================== */
+
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 1.4rem; /* Make the welcome text a bit smaller */
+        white-space: nowrap; /* Prevent it from wrapping if possible */
+        overflow: hidden;
+        text-overflow: ellipsis; /* Add ... if it's still too long */
+    }
+
+    #postEventBtn {
+        padding: 10px 12px; /* Reduce horizontal padding */
+    }
+
+    #logoutButton {
+        font-size: 0; /* Hide the text "Logout" */
+        width: 42px;  /* Set a fixed square-like width */
+        height: 42px; /* Set a fixed square-like height */
+        padding: 0;   /* Remove padding to control the size */
+        background-color: transparent; /* Use transparent background */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23e6edf3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'%3E%3C/path%3E%3Cpolyline points='16 17 21 12 16 7'%3E%3C/polyline%3E%3Cline x1='21' y1='12' x2='9' y2='12'%3E%3C/line%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+}
